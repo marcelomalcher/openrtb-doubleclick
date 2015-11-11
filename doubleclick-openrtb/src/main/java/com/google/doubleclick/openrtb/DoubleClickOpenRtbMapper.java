@@ -96,6 +96,7 @@ public class DoubleClickOpenRtbMapper implements OpenRtbMapper<
   private static final Logger logger = LoggerFactory.getLogger(DoubleClickOpenRtbMapper.class);
   private static final Joiner csvJoiner = Joiner.on(",").skipNulls();
   private static final int MICROS_PER_CURRENCY_UNIT = 1_000_000;
+  private static final int MILLISECONDS_PER_SECOND = 1_000;
 
   private final DoubleClickMetadata metadata;
   private final ImmutableList<ExtMapper> extMappers;
@@ -137,7 +138,7 @@ public class DoubleClickOpenRtbMapper implements OpenRtbMapper<
 
   @Override public OpenRtb.BidRequest.Builder toOpenRtbBidRequest(NetworkBid.BidRequest dcRequest) {
     OpenRtb.BidRequest.Builder request = OpenRtb.BidRequest.newBuilder()
-        .setId(Base64.getUrlEncoder().withoutPadding().encodeToString(
+      .setId(Base64.getUrlEncoder().withoutPadding().encodeToString(
             dcRequest.getId().toByteArray()));
 
     if (dcRequest.getIsPing()) {
@@ -705,10 +706,10 @@ public class DoubleClickOpenRtbMapper implements OpenRtbMapper<
         .addAllBattr(CreativeAttributeMapper.toOpenRtb(dcSlot.getExcludedAttributeList(), null));
 
     if (dcVideo.hasMinAdDuration()) {
-      video.setMinduration(dcVideo.getMinAdDuration());
+      video.setMinduration(dcVideo.getMinAdDuration() / MILLISECONDS_PER_SECOND);
     }
     if (dcVideo.hasMaxAdDuration()) {
-      video.setMaxduration(dcVideo.getMaxAdDuration());
+      video.setMaxduration(dcVideo.getMaxAdDuration() / MILLISECONDS_PER_SECOND);
     }
 
     if (dcVideo.getAllowedVideoFormatsCount() != 0) {
@@ -731,7 +732,7 @@ public class DoubleClickOpenRtbMapper implements OpenRtbMapper<
     }
 
     if (dcVideo.hasVideoadStartDelay()) {
-      video.setStartdelay(VideoStartDelayMapper.toDoubleClick(dcVideo.getVideoadStartDelay()));
+      video.setStartdelay(VideoStartDelayMapper.toOpenRtb(dcVideo.getVideoadStartDelay()));
     }
 
     if (!dcSlot.getExcludedAttributeList().contains(30 /* InstreamVastVideoType: Vpaid Flash */)) {
